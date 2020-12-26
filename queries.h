@@ -39,6 +39,8 @@ private:
 	size_t unic_stop_count = 0;
 	BusFullInfo bus_info;
 	RouteDatabase& data;
+
+	double ConvertCoords(double coord) const;
 private:
 	struct Route {
 		double route_full = 0.0;
@@ -120,4 +122,18 @@ public:
 	QueryRoute& Procces() override;
 
 	QueryRoute& GetResult() override;
+};
+
+class QueryMap : public Query {
+private:
+	int id;
+	std::ostream& out;
+	RouteDatabase& data;
+	Svg::Document doc;
+public:
+	QueryMap(RouteDatabase& data, int id, std::ostream& out = std::cout);
+
+	QueryMap& Procces() override;
+
+	QueryMap& GetResult() override;
 };

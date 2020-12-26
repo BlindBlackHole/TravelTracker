@@ -6,8 +6,13 @@ void RouteDatabase::SetRouteInfo(const RouteInfo& r_i) {
 	route_info = r_i;
 }
 
+void RouteDatabase::SetMapInfo(const MapInfo& m_i) {
+	map_info = m_i;
+}
+
 void RouteDatabase::SetBusInfo(const BusInfo& b_i) {
 	busses_info.insert({ b_i.name, b_i });
+	buses.insert(b_i.name);
 	for (const auto& stop_name : b_i.unic_stops) {
 		auto stop = stops_info.find(stop_name);
 		if (stop == end(stops_info)) {
@@ -32,6 +37,10 @@ const unordered_map<string, BusInfo>& RouteDatabase::GetBusesInfo() const {
 	return busses_info;
 }
 
+const set<string>& RouteDatabase::GetBuses() const {
+	return buses;
+}
+
 void RouteDatabase::SetStopInfo(const StopInfo& s_i) {
 	auto stop = stops_info.find(s_i.name);
 	if (stop != end(stops_info)) {
@@ -44,12 +53,24 @@ void RouteDatabase::SetStopInfo(const StopInfo& s_i) {
 	}
 }
 
-const unordered_map<string, StopInfo>& RouteDatabase::GetStopsInfo() const {
+const map<string, StopInfo>& RouteDatabase::GetStopsInfo() const {
 	return stops_info;
 }
 
 const RouteInfo& RouteDatabase::GetRouteInfo() const {
 	return route_info;
+}
+
+const MapInfo& RouteDatabase::GetMapInfo() const {
+	return map_info;
+}
+
+void RouteDatabase::SetExtremes(Extremes ex) {
+	extremes = ex;
+}
+
+Extremes& RouteDatabase::GetExtremes() {
+	return extremes;
 }
 
 StopId RouteDatabase::AddSubstop(const string& stop_name) {

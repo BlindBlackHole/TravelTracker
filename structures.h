@@ -4,15 +4,21 @@
 #include <vector>
 #include <set>
 #include <unordered_map>
+#include <map>
+#include "svg.h"
 
 const double PI = 3.1415926535;
 
-enum EdgeType {
+enum class EdgeType {
 	BUS,
 	WAIT,
 };
 
 using StopId = size_t;
+
+struct Extremes {
+	double max_lat, min_lat = -1, max_lon, min_lon = -1;
+};
 
 struct StopInternalData
 {
@@ -37,8 +43,22 @@ struct BusInfo {
 };
 
 struct RouteInfo {
-	double bus_wait_time;
-	double bus_velocity;
+	double bus_wait_time = 0.0;
+	double bus_velocity = 0.0;
+};
+
+struct MapInfo {
+	double width = 0.0;
+	double height = 0.0;
+	int padding = 0;
+	double stop_radius = 0.0;
+	double line_width = 0.0;
+	uint32_t stop_label_font_size = 0;
+	Svg::Point stop_label_offset;
+	//std::vector<double> stop_label_offset;
+	Svg::Color underlayer_color;
+	double underlayer_width = 0.0;
+	std::vector<Svg::Color> color_palette;
 };
 
 struct BusFullInfo {

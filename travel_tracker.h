@@ -1,8 +1,9 @@
 #pragma once
+
+#include <iostream>
 #include <memory>
 #include <map>
 #include <string>
-#include <iostream>
 
 #include "json.h"
 #include "graph.h"
@@ -12,6 +13,23 @@
 #include "map.h"
 #include "queries.h"
 
+class Reader {
+private:
+	RouteDatabase& data_;
+public:
+	explicit Reader(RouteDatabase& data);
+
+	void ReadRoutingSettings(const std::map<std::string, Json::Node>& info);
+
+	void ReadRenderSettings(const std::map<std::string, Json::Node>& info);
+
+	void ReadStopInfo(const std::map<std::string, Json::Node>& info);
+
+	void ReadBusInfo(const std::map<std::string, Json::Node>& info);
+
+	void ReadBaseRequests(const std::vector<Json::Node>& info);
+};
+
 class TravelTracker {
 private:
 	std::unique_ptr<Json::Document> doc;
@@ -20,13 +38,11 @@ private:
 	std::map<std::string, Json::Node> requests;
 	std::map<std::string, Json::Node>::iterator queary_pos;
 public:
-
 	TravelTracker(std::istream& in = std::cin, std::ostream& out = std::cout);
 
-	TravelTracker& ReadDatabaseFromJson(RouteDatabase& data);
+	TravelTracker& ReadDataFromJson(RouteDatabase& data);
 
-	TravelTracker& ReadQuearies(RouteDatabase& data);
-
+	TravelTracker& QueryProcessing(RouteDatabase& data);
 };
 
 void TravelManager(std::istream& in = std::cin, std::ostream& out = std::cout);

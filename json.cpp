@@ -100,8 +100,7 @@ namespace Json {
   Node LoadNode(istream& input) {
     char c;
     input >> c;
-
-    if (c == '[') {
+	if (c == '[') {
       return LoadArray(input);
     } else if (c == '{') {
       return LoadDict(input);
@@ -110,7 +109,9 @@ namespace Json {
     } else if (isdigit(c) || c == '-'){
 		input.putback(c);
       return LoadNumber(input);
-	} else {
+	} else 
+	    //if (c == 't' || c == 'f')
+		{
 		input.putback(c);
 		return LoadBool(input);
 	}
@@ -196,5 +197,12 @@ namespace JsonParser {
 			}
 		}
 		out << "]}";
+	}
+
+	void JsonMapOutput(const Svg::Document& doc, int id, ostream& out) {
+		out << "{\n\"request_id\":" << id << ",\n";
+		out << "\"map\": \"";
+		doc.RenderJson(out);
+		out << "\"\n}";
 	}
 }
