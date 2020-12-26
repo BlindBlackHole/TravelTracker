@@ -12,3 +12,5 @@
 Так же программа создает SVG файл, который отображает саму карту автобусных маршрутов исходя из данных об автобусах и остановках.
 
 Примеры маршрутов:
+https://drive.google.com/file/d/1Vs-MgoXMWF_nJi16UGgwi-UAsT76cAri/view?usp=sharing
+https://drive.google.com/file/d/1qjugkeW9uFTH6_B7d1GxzmgZlut_bHeE/view?usp=sharing
