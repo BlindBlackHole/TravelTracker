@@ -64,8 +64,8 @@ namespace JsonParser {
 
 	void JsonStopOutput(StopFullInfo&& stop, std::ostream& out = std::cout);
 
-	void JsonRouteOutput(std::optional<std::vector<Weight>>&& route, 
-		double time_in_road, double wait_time, size_t id, std::ostream& out);
+	void JsonRouteOutput(Svg::Document& doc, const std::optional<std::vector<Weight>>& route,
+		double time_in_road, double wait_time, size_t id, std::ostream& out = std::cout);
 
 	void JsonMapOutput(const Svg::Document& doc, int id, std::ostream& out = std::cout);
 }

@@ -17,7 +17,28 @@ enum class EdgeType {
 using StopId = size_t;
 
 struct Extremes {
-	double max_lat, min_lat = -1, max_lon, min_lon = -1;
+	double max_lat = 0.0, min_lat = -1, max_lon = 0.0, min_lon = -1;
+};
+
+struct InternalCoords {
+	double coord = 0.0;
+	std::string stop_name;
+	size_t index = 0;
+};
+
+bool operator<(const InternalCoords& lhs, const InternalCoords& rhs);
+
+struct StopsCoords
+{
+	double x = 0.0;
+	double y = 0.0;
+};
+
+struct SupportStop
+{
+	int index;
+	int next_sup_index;
+	std::string stop_name;
 };
 
 struct StopInternalData
@@ -40,6 +61,7 @@ struct BusInfo {
 	std::unordered_set<std::string> unic_stops;
 	std::vector<std::string> stops;
 	bool circle;
+	Svg::Color color;
 };
 
 struct RouteInfo {
@@ -50,15 +72,18 @@ struct RouteInfo {
 struct MapInfo {
 	double width = 0.0;
 	double height = 0.0;
-	int padding = 0;
+	double padding = 0.0;
 	double stop_radius = 0.0;
 	double line_width = 0.0;
 	uint32_t stop_label_font_size = 0;
 	Svg::Point stop_label_offset;
-	//std::vector<double> stop_label_offset;
 	Svg::Color underlayer_color;
 	double underlayer_width = 0.0;
 	std::vector<Svg::Color> color_palette;
+	int bus_label_font_size = 0;
+	Svg::Point bus_label_offset;
+	std::vector<std::string> layers;
+	double outer_margin = 0.0;
 };
 
 struct BusFullInfo {
@@ -96,6 +121,8 @@ struct Weight {
 
 	Weight& operator=(int64_t value);
 };
+
+bool is_equal(double x, double y, double epsilon = 1e-6);
 
 bool operator > (const Weight& lhs, const Weight& rhs);
 

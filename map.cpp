@@ -56,7 +56,7 @@ Map::InternalGraph Map::BuildMap() {
 
 				//get distance and time
 				distance += GetDistanceBetweenStops(stops, j - 1, j);
-				double time = distance / (route_info.bus_velocity * 50 / 3);
+				double time = distance / (route_info.bus_velocity * 50.0 / 3.0);
 
 				//add edge
 				graph.AddEdge(Graph::Edge<Weight>({ substop_id, to.id,
@@ -76,7 +76,7 @@ Map::InternalGraph Map::BuildMap() {
 					}
 
 					distance_backward += GetDistanceBetweenStops(stops, j, j - 1);
-					time = distance_backward / (route_info.bus_velocity * 50 / 3);
+					time = distance_backward / (route_info.bus_velocity * 50.0 / 3.0);
 					graph.AddEdge(Graph::Edge<Weight>({ substop_id2, from.id,
 						Weight{ EdgeType::BUS, time, bus.first, j - i } }));
 				}
@@ -86,7 +86,8 @@ Map::InternalGraph Map::BuildMap() {
 	return move(graph);
 }
 
-optional<vector<Weight>> Map::CreateRoute(GraphPtr graph, RouterPtr router, 
+optional<vector<Weight>> Map::CreateRoute(std::shared_ptr<Graph::DirectedWeightedGraph<Weight>> graph,
+	std::shared_ptr<Graph::Router<Weight>> router,
 	Graph::VertexId from, Graph::VertexId to) const {
 	auto route = router->BuildRoute(from, to);
 	time_in_road = 0.0;

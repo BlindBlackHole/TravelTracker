@@ -1,12 +1,14 @@
 #include "queries.h"
-#include <fstream>
-#include <math.h>
+#include "layers.h"
+
+#include <cmath>
 
 using namespace std;
 
 using GraphPtr = shared_ptr<Graph::DirectedWeightedGraph<Weight>>;
 using RouterPtr = shared_ptr<Graph::Router<Weight>>;
 
+	//--QueryStop
 	QueryStop::QueryStop(RouteDatabase & data, const string & stop_name, int id, ostream & out)
 		: data(data)
 		, out(out)
@@ -36,6 +38,14 @@ using RouterPtr = shared_ptr<Graph::Router<Weight>>;
 		JsonParser::JsonStopOutput(move(stop_info), out);
 		return *this;
 	}
+	//QueryStop--
+
+	//--QueryBus
+	QueryBus::QueryBus(RouteDatabase& data, const string& bus_name, int id, ostream& out)
+		: data(data)
+		, out(out)
+		, bus_name(bus_name)
+		, id(id) {}
 
 	double QueryBus::ConvertCoords(double coord) const {
 		return coord * PI / 180;
@@ -46,12 +56,6 @@ using RouterPtr = shared_ptr<Graph::Router<Weight>>;
 			+ cos(ConvertCoords(lhs.latitude)) * cos(ConvertCoords(rhs.latitude)) *
 			cos(abs(ConvertCoords(lhs.longtitude) - ConvertCoords(rhs.longtitude)))) * 6371000;
 	}
-
-	QueryBus::QueryBus(RouteDatabase & data, const string & bus_name, int id, ostream & out) 
-		: data(data)
-		, out(out)
-		, bus_name(bus_name)
-		, id(id) {}
 
 	QueryBus& QueryBus::Procces() {
 		const auto& busses_info = data.GetBusesInfo();
@@ -97,8 +101,9 @@ using RouterPtr = shared_ptr<Graph::Router<Weight>>;
 		JsonParser::JsonBusOutput(move(bus_info), out);
 		return *this;
 	}
+	//--QueryBus
 
-
+	//--QueryRoute
 	QueryRoute::QueryRoute(RouteDatabase& data, Map& map, GraphPtr graph, RouterPtr router,
 		Graph::VertexId from, Graph::VertexId to, int id, ostream& out)
 		: data(data)
@@ -114,123 +119,54 @@ using RouterPtr = shared_ptr<Graph::Router<Weight>>;
 
 	QueryRoute& QueryRoute::Procces() {
 		route_ = map_.CreateRoute(graph_, router_, from, to);
+		//Firstly map rendering
+		RenderMap routes_map(doc, data);
+		const vector<string>& render_layers = data.GetMapInfo().layers;
+		for (const string& render_layer : render_layers) {
+			//Выделяем указатель на метод
+			auto method_ptr = routes_map.LAYERS.at(render_layer);
+			//Вызываем методы с одинаковой сигнатурой, через указатели на них же
+			(routes_map.*method_ptr)();
+		}
+		//Secondly roure rendering
+		RenderRoute route(doc, data, route_, from, to);
+		route.AddRectangle();
+		for (const string& render_layer : render_layers) {
+			auto method_ptr = route.LAYERS.at(render_layer);
+			(route.*method_ptr)();
+		}
 		return *this;
 	}
 
 	QueryRoute& QueryRoute::GetResult() {
-		JsonParser::JsonRouteOutput(move(route_), map_.GetTimeInRoad(), data.GetRouteInfo().bus_wait_time, id, out);
+		ofstream out("route" + to_string(id) + ".svg");
+		//ofstream outdata("data" + to_string(id) + ".txt");
+		doc.Render(out);
+		JsonParser::JsonRouteOutput(doc, route_, map_.GetTimeInRoad(), data.GetRouteInfo().bus_wait_time, id, this->out);
 		return *this;
 	}
+	//QueryRoute--
 
-	QueryMap::QueryMap(RouteDatabase& data, int id, std::ostream& out) 
+	//--QueryMap
+	QueryMap::QueryMap(RouteDatabase& data, int id, std::ostream& out)
 		: data(data), id(id), out(out) {}
 
-	class Coords {
-	private:
-		const MapInfo& map_info;
-		const Extremes& extremes;
-		double x = 0.0;
-		double y = 0.0;
-		double zoom_coef = 0.0;
-	private:
-		double GetZoomCoef() const {
-			double zoom_coef = 0.0;
-			double width_zoom_coef = 0.0;
-			double height_zoom_coef = 0.0;
-			if (((extremes.max_lon - extremes.min_lon) == 0) && ((extremes.max_lat - extremes.min_lat) == 0)) {
-				zoom_coef = 0.0;
-			}else if (((extremes.max_lon - extremes.min_lon) == 0) && ((extremes.max_lat - extremes.min_lat) != 0)) {
-				height_zoom_coef = (map_info.height - 2.0 * map_info.padding) / (extremes.max_lat - extremes.min_lat);
-				zoom_coef = height_zoom_coef;
-			}
-			else if (((extremes.max_lat - extremes.min_lat) == 0) && ((extremes.max_lon - extremes.min_lon) != 0)) {
-				width_zoom_coef = (map_info.width - 2.0 * map_info.padding) / (extremes.max_lon - extremes.min_lon);
-				zoom_coef = width_zoom_coef;
-			}
-			else if(((extremes.max_lat - extremes.min_lat) != 0) && ((extremes.max_lon - extremes.min_lon) != 0)){
-				height_zoom_coef = (map_info.height - 2.0 * map_info.padding) / (extremes.max_lat - extremes.min_lat);
-				width_zoom_coef = (map_info.width - 2.0 * map_info.padding) / (extremes.max_lon - extremes.min_lon);
-				zoom_coef = min(width_zoom_coef, height_zoom_coef);
-			}
-			return zoom_coef;
-		}
-	public:
-		Coords(const MapInfo& map_info, const Extremes& ex) : map_info(map_info), extremes(ex) {
-			zoom_coef = GetZoomCoef();
-		};
-
-		pair<double, double> GetCoords(double lon, double lat) {
-			x = (lon - extremes.min_lon) * zoom_coef + map_info.padding;
-			y = (extremes.max_lat - lat) * zoom_coef + map_info.padding;
-			return { x, y };
-		}
-	};
-
 	QueryMap& QueryMap::Procces() {
-		const auto& map_info = data.GetMapInfo();
-		const auto& extremes = data.GetExtremes();
-		Coords coords(map_info, extremes);
-		size_t size = map_info.color_palette.size();
-		size_t i = 0;
-		const auto& buses = data.GetBusesInfo();
-		const auto& stops = data.GetStopsInfo();
-		//Get bus
-		for (const auto& bus : data.GetBuses()) {
-			Svg::Polyline line = Svg::Polyline{}
-				.SetStrokeWidth(map_info.line_width)
-				.SetStrokeLineCap("round")
-				.SetStrokeLineJoin("round")
-				.SetStrokeColor(map_info.color_palette[i % size]);
-			for (size_t i = 0; i < buses.at(bus).stops.size(); ++i) {
-				auto stop_info = stops.at(buses.at(bus).stops[i]);
-				auto [x, y] = coords.GetCoords(stop_info.longtitude, stop_info.latitude);
-				line.AddPoint({ x,y });
-			}
-			if (!buses.at(bus).circle) {
-				for (int i = buses.at(bus).stops.size() - 2; i >= 0; --i) {
-					auto stop_info = stops.at(buses.at(bus).stops[i]);
-					auto [x, y] = coords.GetCoords(stop_info.longtitude, stop_info.latitude);
-					line.AddPoint({ x,y });
-				}
-			}
-			doc.Add(move(line));
-			++i;
+		RenderMap layers(doc, data);
+		const vector<string>& render_layers = data.GetMapInfo().layers;
+		for (const string& render_layer : render_layers) {
+			//Выделяем указатель на метод
+			auto method_ptr = layers.LAYERS.at(render_layer);
+			//Вызываем методы с одинаковой сигнатурой, через указатели на них же
+			(layers.*method_ptr)();
 		}
-		for (const auto& stop : data.GetStopsInfo()) {
-			auto [x, y] = coords.GetCoords(stop.second.longtitude, stop.second.latitude);
-			doc.Add(Svg::Circle{}
-				.SetFillColor("white")
-				.SetRadius(map_info.stop_radius)
-				.SetCenter({x,y}));
-		}
-		for (const auto& stop : data.GetStopsInfo()) {
-			auto [x, y] = coords.GetCoords(stop.second.longtitude, stop.second.latitude);
-			doc.Add(Svg::Text{}
-				.SetFillColor(map_info.underlayer_color)
-				.SetStrokeColor(map_info.underlayer_color)
-				.SetStrokeWidth(map_info.underlayer_width)
-				.SetStrokeLineJoin("round")
-				.SetStrokeLineCap("round")
-				.SetFontFamily("Verdana")
-				.SetFontSize(map_info.stop_label_font_size)
-				.SetData(stop.first)
-				.SetOffset(map_info.stop_label_offset)
-				.SetPoint({ x,y }));
-			doc.Add(Svg::Text{}
-				.SetFillColor("black")
-				.SetFontFamily("Verdana")
-				.SetFontSize(map_info.stop_label_font_size)
-				.SetData(stop.first)
-				.SetOffset(map_info.stop_label_offset)
-				.SetPoint({ x,y }));
-		}
-
 		return *this;
 	}
 
 	QueryMap& QueryMap::GetResult() {
-		ofstream out("out" + to_string(id) + ".svg");
+		ofstream out("map" + to_string(id) + ".svg");
 		doc.Render(out);
-		JsonParser::JsonMapOutput(doc, id);
+		JsonParser::JsonMapOutput(doc, id, this->out);
 		return *this;
 	}
+	//QueryMap--

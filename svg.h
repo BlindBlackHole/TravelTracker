@@ -77,7 +77,7 @@ namespace Svg {
 		answer = "rgba(" + std::to_string(static_cast<int>(rgba.red))
 			+ "," + std::to_string(static_cast<int>(rgba.green))
 			+ "," + std::to_string(static_cast<int>(rgba.blue))
-			+ "," + std::to_string(rgba.alpha) + ")";
+			+ "," + convert<double>(rgba.alpha) + ")";
 		return answer;
 	}
 
@@ -263,6 +263,7 @@ namespace Svg {
 		uint32_t fontSize = 1;
 		std::string fontFamily;
 		std::string data;
+		std::string fontWeight;
 	public:
 		Text() = default;
 
@@ -287,6 +288,11 @@ namespace Svg {
 			return *this;
 		}
 
+		Text& SetFontWeight(const std::string& f_w) {
+			fontWeight = f_w;
+			return *this;
+		}
+
 		std::string GetSvg() const override {
 			std::string answer = "<text ";
 			answer += "x=\"" + std::to_string(point.x) + "\" ";
@@ -296,6 +302,9 @@ namespace Svg {
 			answer += "font-size=\"" + std::to_string(fontSize) + "\" ";
 			if (fontFamily != "") {
 				answer += "font-family=\"" + fontFamily + "\" ";
+			}
+			if (fontWeight != "") {
+				answer += "font-weight=\"" + fontWeight + "\" ";
 			}
 			answer += GetDefaultParams();
 			answer += ">" + data + "</text>";
@@ -312,8 +321,57 @@ namespace Svg {
 			if (fontFamily != "") {
 				answer += "font-family=\\\"" + fontFamily + "\\\" ";
 			}
+			if (fontWeight != "") {
+				answer += "font-weight=\\\"" + fontWeight + "\\\" ";
+			}
 			answer += GetDefaultParamsJson();
 			answer += ">" + data + "</text>";
+			return answer;
+		}
+	};
+
+
+	class Rect : public Object, public PathProps<Rect> {
+	private:
+		Point point;
+		double width, height;
+	public:
+		Rect() = default;
+
+		Rect& SetPoint(Point p) {
+			point = p;
+			return *this;
+		}
+
+		Rect& SetWidth(double w) {
+			width = w;
+			return *this;
+		}
+
+		Rect& SetHeight(double h) {
+			height = h;
+			return *this;
+		}
+	
+		std::string GetSvg() const override {
+			std::string answer = "<rect ";
+			answer += "x=\"" + std::to_string(point.x) + "\" ";
+			answer += "y=\"" + std::to_string(point.y) + "\" ";
+			answer += "width=\"" + std::to_string(width) + "\" ";
+			answer += "height=\"" + std::to_string(height) + "\" ";
+			answer += GetDefaultParams();
+			answer += "/>";
+			return answer;
+		}
+
+		std::string GetSvgJson() const override {
+			std::string answer = "<rect ";
+			answer += "x=\\\"" + convert<double>(point.x) + "\\\" ";
+			answer += "y=\\\"" + convert<double>(point.y) + "\\\" ";
+			answer += "width=\\\"" + convert<double>(width) + "\\\" ";
+			answer += "height=\\\"" + convert<double>(height) + "\\\" ";
+			answer += GetDefaultParamsJson();
+			answer += "/>";
 			return answer;
 		}
 	};
@@ -354,6 +412,7 @@ namespace Svg {
 			result += "</svg>";
 			out << result;
 		}
+		double a = 0.0;
 	};
 
 }

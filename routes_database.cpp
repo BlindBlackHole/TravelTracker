@@ -10,6 +10,17 @@ void RouteDatabase::SetMapInfo(const MapInfo& m_i) {
 	map_info = m_i;
 }
 
+void RouteDatabase::SetBusesColors() {
+	size_t i = 0;
+	size_t palette_size = map_info.color_palette.size();
+	if (palette_size == 0)
+		return;
+	for (const string& bus_name : buses) {
+		busses_info[bus_name].color = map_info.color_palette[i % palette_size];
+		++i;
+	}
+}
+
 void RouteDatabase::SetBusInfo(const BusInfo& b_i) {
 	busses_info.insert({ b_i.name, b_i });
 	buses.insert(b_i.name);
@@ -25,7 +36,7 @@ void RouteDatabase::SetBusInfo(const BusInfo& b_i) {
 	}
 }
 
-vector<string>& RouteDatabase::GetStopsById() {
+const vector<string>& RouteDatabase::GetStopsById() const {
 	return stops_by_id;
 }
 
@@ -51,10 +62,15 @@ void RouteDatabase::SetStopInfo(const StopInfo& s_i) {
 	else {
 		stops_info.insert({ s_i.name, s_i });
 	}
+	stops_geograf_coords.insert({ s_i.name, {s_i.longtitude, s_i.latitude} });
 }
 
 const map<string, StopInfo>& RouteDatabase::GetStopsInfo() const {
 	return stops_info;
+}
+
+const unordered_map<string, StopsCoords>& RouteDatabase::GetStopsCoords() const {
+	return stops_geograf_coords;
 }
 
 const RouteInfo& RouteDatabase::GetRouteInfo() const {
@@ -69,7 +85,7 @@ void RouteDatabase::SetExtremes(Extremes ex) {
 	extremes = ex;
 }
 
-Extremes& RouteDatabase::GetExtremes() {
+const Extremes& RouteDatabase::GetExtremes() const {
 	return extremes;
 }
 

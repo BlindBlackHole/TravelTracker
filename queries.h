@@ -113,6 +113,7 @@ private:
 	std::shared_ptr<Graph::Router<Weight>> router_;
 	std::optional<std::vector<Weight>> route_;
 	RouteDatabase& data;
+	Svg::Document doc;
 public:
 	QueryRoute(RouteDatabase& data, Map& map, 
 		std::shared_ptr<Graph::DirectedWeightedGraph<Weight>> graph,

@@ -165,7 +165,7 @@ namespace JsonParser {
 
 	}
 
-	void JsonRouteOutput(std::optional<vector<Weight>>&& route, double time_in_road, double wait_time, size_t id, ostream& out) {
+	void JsonRouteOutput(Svg::Document& doc, const std::optional<vector<Weight>>& route, double time_in_road, double wait_time, size_t id, ostream& out) {
 		if (!route) {
 			out << "{\n\"request_id\":" << id << ",\n"
 				<< "\"error_message\": \"not found\"\n}";
@@ -175,6 +175,9 @@ namespace JsonParser {
 		double full_time = time_in_road;
 
 		out << "{\n\"request_id\":" << id << ",\n"
+		    << "\"map\": \"";
+		    doc.RenderJson(out);
+		    out << "\",\n"
 			<< "\"total_time\": " << full_time << ",\n\"items\": [\n";
 		for (size_t i = 0; i < route->size(); ++i) {
 			if (route->at(i).edge == EdgeType::WAIT) {

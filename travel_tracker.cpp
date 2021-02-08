@@ -54,41 +54,53 @@ void Reader::ReadRenderSettings(const map<string, Json::Node>& info) {
 	map_info.stop_label_font_size = info.at("stop_label_font_size").AsDouble();
 	map_info.stop_radius = info.at("stop_radius").AsDouble();
 	map_info.underlayer_width = info.at("underlayer_width").AsDouble();
+	map_info.underlayer_color = GetColor(info.at("underlayer_color"));
+	map_info.bus_label_font_size = info.at("bus_label_font_size").AsDouble();
+	map_info.outer_margin = info.at("outer_margin").AsDouble();
+
 	auto stop_label_offset = info.at("stop_label_offset").AsArray();
 	map_info.stop_label_offset = {
 		stop_label_offset[0].AsDouble(), stop_label_offset[1].AsDouble() };
-	map_info.underlayer_color = GetColor(info.at("underlayer_color"));
+
+	auto bus_label_offset = info.at("bus_label_offset").AsArray();
+	map_info.bus_label_offset = {
+		bus_label_offset[0].AsDouble(), bus_label_offset[1].AsDouble() };
+
 	auto colors = info.at("color_palette").AsArray();
 	for (auto& color : colors) {
 		map_info.color_palette.push_back(GetColor(color));
+	}
+	auto layers = info.at("layers").AsArray();
+	for (const auto& layer : layers) {
+		map_info.layers.push_back(layer.AsString());
 	}
 	data_.SetMapInfo(move(map_info));
 }
 
 void Reader::ReadStopInfo(const map<string, Json::Node>& info) {
 	StopInfo stop_info;
-	Extremes& ex = data_.GetExtremes();
+	Extremes ex = data_.GetExtremes(); //Get current extremes
 	stop_info.id = data_.GetStopIdByName(info.at("name").AsString());
 	stop_info.name = info.at("name").AsString();
 	stop_info.latitude = info.at("latitude").AsDouble(); //*PI / 180;
-	if (stop_info.latitude > ex.max_lat) {
-		ex.max_lat = stop_info.latitude;
-	}
-	else if (ex.min_lat == -1 || stop_info.latitude < ex.min_lat) {
-		ex.min_lat = stop_info.latitude;
-	}
+	//Find out extremes of latitude and longtitude
+	ex.max_lat = std::max(ex.max_lat, stop_info.latitude);
+	ex.min_lat = is_equal(ex.min_lat, -1.0) ? stop_info.latitude 
+		: std::min(stop_info.latitude, ex.min_lat);
+
 	stop_info.longtitude = info.at("longitude").AsDouble(); //*PI / 180;
-	if (stop_info.longtitude > ex.max_lon) {
-		ex.max_lon = stop_info.longtitude;
-	}
-	else if (ex.min_lon == -1 || stop_info.longtitude < ex.min_lon) {
-		ex.min_lon = stop_info.longtitude;
-	}
+	ex.max_lon = std::max(ex.max_lon, stop_info.longtitude);
+	ex.min_lon = is_equal(ex.min_lon, -1.0) ? stop_info.longtitude
+		: std::min(stop_info.longtitude, ex.min_lon);
+
+	//Parse distances from current stop to others stops
 	for (const auto& dis : info.at("road_distances").AsMap()) {
 		StopId id = data_.GetStopIdByName(dis.first);
 		stop_info.distance.insert({ dis.first, StopInternalData({ id, (int)dis.second.AsDouble() }) });
 	}
+	//Set data do databases
 	data_.SetStopInfo(move(stop_info));
+	data_.SetExtremes(move(ex));
 }
 
 void Reader::ReadBusInfo(const map<string, Json::Node>& info) {
@@ -143,6 +155,7 @@ TravelTracker& TravelTracker::QueryProcessing(RouteDatabase& data) {
 	GraphPtr graph_ptr = make_unique<Map::InternalGraph>(graph);
 	RouterPtr router_ptr = make_unique<Graph::Router<Weight>>(router);
 
+	data.SetBusesColors();
 	out << "[\n";
 	for (auto request = queary_pos; request != end(requests); ++request) {
 		size_t size = request->second.AsArray().size();

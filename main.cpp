@@ -8,12 +8,11 @@ using namespace std;
 
 int main() {
 	//setlocale(LC_CTYPE, "Russian");
-	TestRunner tr;
-	tr.RunTest(Tests::TestGraphBuild, "Test#1");
-	Tests::TestSvg();
+	Tests::TestSvg1();
 	Tests::TestSvg2();
 
 	TravelManager();
+
 	return 0;
 }
 
