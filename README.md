@@ -288,6 +288,16 @@ y = (max_lat - lat) * zoom_coef + padding;
 
 Таким образом, сохраняется взаимный порядок остановок внутри одной линии, но между линиями он может нарушаться.
 
-Примеры карт:
-![Alt-текст](https://github.com/BlindBlackHole/TravelTracker/blob/master/map1639812454.svg "map")
+### Примеры карт:
 
+![Alt-текст](https://github.com/BlindBlackHole/TravelTracker/blob/master/map1639812454.svg "map1639812454")
+
+![Alt-текст](https://github.com/BlindBlackHole/TravelTracker/blob/master/map1821171961.svg "map1821171961")
+
+### Примеры маршрутов:
+
+![Alt-текст](https://github.com/BlindBlackHole/TravelTracker/blob/master/route133160474.svg "route133160474")
+
+![Alt-текст](https://github.com/BlindBlackHole/TravelTracker/blob/master/route299735397.svg "route299735397")
+
+![Alt-текст](https://github.com/BlindBlackHole/TravelTracker/blob/master/route822710686.svg "route822710686")
