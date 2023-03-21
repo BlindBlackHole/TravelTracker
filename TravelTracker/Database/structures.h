@@ -1,11 +1,11 @@
 #pragma once
+#include "Utils/svg.h"
+#include <map>
+#include <set>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <set>
-#include <unordered_map>
-#include <map>
-#include "Utils/svg.h"
 
 const double PI = 3.1415926535;
 
@@ -16,11 +16,13 @@ enum class EdgeType {
 
 using StopId = size_t;
 
-struct Extremes {
+struct Extremes
+{
     double max_lat = 0.0, min_lat = -1, max_lon = 0.0, min_lon = -1;
 };
 
-struct InternalCoords {
+struct InternalCoords
+{
     double coord = 0.0;
     std::string stop_name;
     size_t index = 0;
@@ -47,7 +49,8 @@ struct StopInternalData
     int dis;
 };
 
-struct StopInfo {
+struct StopInfo
+{
     std::string name;
     StopId id{};
     double latitude{};
@@ -56,7 +59,8 @@ struct StopInfo {
     std::unordered_map<std::string, StopInternalData> distance;
 };
 
-struct BusInfo {
+struct BusInfo
+{
     std::string name;
     std::unordered_set<std::string> unic_stops;
     std::vector<std::string> stops;
@@ -64,12 +68,14 @@ struct BusInfo {
     Svg::Color color;
 };
 
-struct RouteInfo {
+struct RouteInfo
+{
     double bus_wait_time = 0.0;
     double bus_velocity = 0.0;
 };
 
-struct MapInfo {
+struct MapInfo
+{
     double width = 0.0;
     double height = 0.0;
     double padding = 0.0;
@@ -86,7 +92,8 @@ struct MapInfo {
     double outer_margin = 0.0;
 };
 
-struct BusFullInfo {
+struct BusFullInfo
+{
     bool isFound;
     std::string bus_name;
     int id;
@@ -96,20 +103,23 @@ struct BusFullInfo {
     size_t stop_count;
 };
 
-struct StopFullInfo {
+struct StopFullInfo
+{
     bool isFound;
     std::set<std::string> buses;
     int id;
 };
 
-struct BusesRoute {
+struct BusesRoute
+{
     std::string bus_name;
     double time;
     size_t span_count;
     std::vector<std::string> stops;
 };
 
-struct Weight {
+struct Weight
+{
     EdgeType edge;
     double weight = 0.0;
     std::string bus_or_stop;
@@ -124,6 +134,6 @@ struct Weight {
 
 bool is_equal(double x, double y, double epsilon = 1e-6);
 
-bool operator > (const Weight& lhs, const Weight& rhs);
+bool operator>(const Weight& lhs, const Weight& rhs);
 
-bool operator >= (const Weight& lhs, int64_t value);
+bool operator>=(const Weight& lhs, int64_t value);

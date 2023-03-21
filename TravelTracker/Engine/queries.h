@@ -2,35 +2,41 @@
 
 #include <iostream>
 
-#include "structures.h"
-#include "routes_database.h"
 #include "graph.h"
-#include "router.h"
-#include "map.h"
 #include "json.h"
+#include "map.h"
+#include "router.h"
+#include "routes_database.h"
+#include "structures.h"
 
-class Query {
+class Query
+{
 public:
     virtual Query& Procces() = 0;
     virtual Query& GetResult() = 0;
 };
 
-class QueryStop : public Query {
+class QueryStop : public Query
+{
 private:
     StopFullInfo stop_info;
     std::string stop_name;
     int id;
     std::ostream& out;
     RouteDatabase& data;
+
 public:
-    QueryStop(RouteDatabase& data, const std::string& stop_name, int id, std::ostream& out = std::cout);
+    QueryStop(
+        RouteDatabase& data, const std::string& stop_name, int id, std::ostream& out = std::cout
+    );
 
     QueryStop& Procces() override;
 
     QueryStop& GetResult() override;
 };
 
-class QueryBus : public Query {
+class QueryBus : public Query
+{
 private:
     std::string bus_name;
     int id;
@@ -41,26 +47,28 @@ private:
     RouteDatabase& data;
 
     double ConvertCoords(double coord) const;
+
 private:
-    struct Route {
+    struct Route
+    {
         double route_full = 0.0;
         double route_forward = 0.0;
 
-        Route& operator+=(const Route& rhs) {
+        Route& operator+=(const Route& rhs)
+        {
             route_full += rhs.route_full;
             route_forward += rhs.route_forward;
             return *this;
         }
 
-        double GetCur() {
-            return route_full / route_forward;
-        }
+        double GetCur() { return route_full / route_forward; }
     };
 
     double GetLength(const StopInfo& lhs, const StopInfo& rhs) const;
 
-    template<int SIGN>
-    Route GetRoute(const std::vector<std::string>& stops) const {
+    template <int SIGN>
+    Route GetRoute(const std::vector<std::string>& stops) const
+    {
         static_assert(SIGN == -1 || SIGN == 1);
         Route result;
         const auto& stops_info = data.GetStopsInfo();
@@ -94,15 +102,19 @@ private:
         }
         return result;
     }
+
 public:
-    QueryBus(RouteDatabase& data, const std::string& bus_name, int id, std::ostream& out = std::cout);
+    QueryBus(
+        RouteDatabase& data, const std::string& bus_name, int id, std::ostream& out = std::cout
+    );
 
     QueryBus& Procces() override;
 
     QueryBus& GetResult() override;
 };
 
-class QueryRoute : public Query {
+class QueryRoute : public Query
+{
 private:
     Graph::VertexId from;
     Graph::VertexId to;
@@ -114,23 +126,27 @@ private:
     std::optional<std::vector<Weight>> route_;
     RouteDatabase& data;
     Svg::Document doc;
+
 public:
-    QueryRoute(RouteDatabase& data, Map& map,
-        std::shared_ptr<Graph::DirectedWeightedGraph<Weight>> graph,
-        std::shared_ptr<Graph::Router<Weight>> router,
-        Graph::VertexId from, Graph::VertexId to, int id, std::ostream& out = std::cout);
+    QueryRoute(
+        RouteDatabase& data, Map& map, std::shared_ptr<Graph::DirectedWeightedGraph<Weight>> graph,
+        std::shared_ptr<Graph::Router<Weight>> router, Graph::VertexId from, Graph::VertexId to,
+        int id, std::ostream& out = std::cout
+    );
 
     QueryRoute& Procces() override;
 
     QueryRoute& GetResult() override;
 };
 
-class QueryMap : public Query {
+class QueryMap : public Query
+{
 private:
     int id;
     std::ostream& out;
     RouteDatabase& data;
     Svg::Document doc;
+
 public:
     QueryMap(RouteDatabase& data, int id, std::ostream& out = std::cout);
 

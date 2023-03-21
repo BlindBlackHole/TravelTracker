@@ -1,15 +1,16 @@
 #pragma once
 
-#include <sstream>
 #include <fstream>
+#include <sstream>
 
 #include "test_runner.h"
 #include "travel_tracker.h"
 
 namespace Tests {
 
-	void TestGraphBuild() {
-		istringstream in(R"({
+    void TestGraphBuild()
+    {
+        istringstream in(R"({
   "routing_settings": {
     "bus_wait_time": 2,
     "bus_velocity": 30
@@ -231,9 +232,9 @@ namespace Tests {
   ]
 })");
 
-		//ofstream out("output2.txt");
-		ostringstream out;
-		const string answer = R"([
+        // ofstream out("output2.txt");
+        ostringstream out;
+        const string answer = R"([
 {
  "route_length":5880,
 "request_id":1,
@@ -409,62 +410,80 @@ namespace Tests {
 }
 ]}
 ])";
-		TravelManager(in, out);
-		ASSERT_EQUAL(out.str(), answer);
-	}
+        TravelManager(in, out);
+        ASSERT_EQUAL(out.str(), answer);
+    }
 
-    void TestSvg1() {
+    void TestSvg1()
+    {
         ifstream in("SVGtest1.txt");
         if (!in) {
-            cerr << "file: " << "SVGtest1.txt" << " is not found." << endl;
+            cerr << "file: "
+                 << "SVGtest1.txt"
+                 << " is not found." << endl;
             return;
         }
         TravelManager(in, cout);
     }
 
-    void TestSvg2() {
+    void TestSvg2()
+    {
         ifstream in("SVGtest2.txt");
         if (!in) {
-            cerr << "file: " << "SVGtest2.txt" << " is not found." << endl;
+            cerr << "file: "
+                 << "SVGtest2.txt"
+                 << " is not found." << endl;
             return;
         }
         TravelManager(in, cout);
     }
 
-    void TestSvg3() {
+    void TestSvg3()
+    {
         ifstream in("SVGtest3.txt");
         if (!in) {
-            cerr << "file: " << "SVGtest3.txt" << " is not found." << endl;
+            cerr << "file: "
+                 << "SVGtest3.txt"
+                 << " is not found." << endl;
             return;
         }
         TravelManager(in, cout);
     }
 
-    void TestSvg10() {
+    void TestSvg10()
+    {
         ifstream in("SVGtest10.txt");
         if (!in) {
-            cerr << "file: " << "SVGtest10.txt" << " is not found." << endl;
+            cerr << "file: "
+                 << "SVGtest10.txt"
+                 << " is not found." << endl;
             return;
         }
         TravelManager(in, cout);
     }
 
-    void TestSvg10Sized() {
+    void TestSvg10Sized()
+    {
         ifstream in("SVGtest10Sized.txt");
         if (!in) {
-            cerr << "file: " << "SVGtest10.txt" << " is not found." << endl;
+            cerr << "file: "
+                 << "SVGtest10.txt"
+                 << " is not found." << endl;
             return;
         }
         TravelManager(in, cout);
     }
 
-    void TestSvg5() {
+    void TestSvg5()
+    {
         ifstream in("SVGtest5.txt");
         if (!in) {
-            cerr << "file: " << "SVGtest5.txt" << " is not found." << endl;
+            cerr << "file: "
+                 << "SVGtest5.txt"
+                 << " is not found." << endl;
             return;
         }
         TravelManager(in, cout);
     }
 
-}
+}  // namespace Tests
