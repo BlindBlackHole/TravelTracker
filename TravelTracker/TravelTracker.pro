@@ -1,8 +1,9 @@
-QT       += core gui
+QT       += core httpserver
+QT       -= gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+CONFIG += c++2a
 
-CONFIG += c++17
+CONFIG -= app_bundle
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -17,7 +18,6 @@ SOURCES += \
     Render/layers.cpp \
     Utils/json.cpp \
     main.cpp \
-    mainwindow.cpp \
     travel_tracker.cpp
 
 HEADERS += \
@@ -34,7 +34,6 @@ HEADERS += \
     Tests/tests.h \
     Utils/json.h \
     Utils/svg.h \
-    mainwindow.h \
     travel_tracker.h
 
 INCLUDEPATH += \
@@ -43,9 +42,6 @@ INCLUDEPATH += \
     Engine/ \
     Render/ \
     Tests/
-
-FORMS += \
-    mainwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
