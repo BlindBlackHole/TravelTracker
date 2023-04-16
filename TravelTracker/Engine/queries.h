@@ -116,15 +116,15 @@ public:
 class QueryRoute : public Query
 {
 private:
+    RouteDatabase& data;
+    std::ostream& out;
+    Map& map_;
     Graph::VertexId from;
     Graph::VertexId to;
     int id;
-    std::ostream& out;
-    Map& map_;
     std::shared_ptr<Graph::DirectedWeightedGraph<Weight>> graph_;
     std::shared_ptr<Graph::Router<Weight>> router_;
     std::optional<std::vector<Weight>> route_;
-    RouteDatabase& data;
     Svg::Document doc;
 
 public:
@@ -142,13 +142,13 @@ public:
 class QueryMap : public Query
 {
 private:
+    const RouteDatabase& data;
     int id;
     std::ostream& out;
-    RouteDatabase& data;
     Svg::Document doc;
 
 public:
-    QueryMap(RouteDatabase& data, int id, std::ostream& out = std::cout);
+    QueryMap(const RouteDatabase& data, int id, std::ostream& out = std::cout);
 
     QueryMap& Procces() override;
 

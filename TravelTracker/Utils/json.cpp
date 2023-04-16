@@ -190,6 +190,7 @@ namespace JsonParser {
         double full_time = time_in_road;
 
         out << "{\n\"request_id\":" << id << ",\n"
+            << "\"link\": \"" << "http://localhost:8080/route/svg" << "\",\n"
             << "\"map\": \"";
         doc.RenderJson(out);
         out << "\",\n"

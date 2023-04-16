@@ -10,6 +10,7 @@
 #include "queries.h"
 #include "routes_database.h"
 #include "structures.h"
+#include <QJsonObject>
 
 class Reader
 {
@@ -28,6 +29,30 @@ public:
     void ReadBusInfo(const std::map<std::string, Json::Node>& info);
 
     void ReadBaseRequests(const std::vector<Json::Node>& info);
+};
+
+class RouteManager
+{
+private:
+    using GraphPtr = std::shared_ptr<Graph::DirectedWeightedGraph<Weight>>;
+    using RouterPtr = std::shared_ptr<Graph::Router<Weight>>;
+
+    RouteDatabase fDatabase;
+    Map fMap;
+    RouterPtr fRouter;
+    GraphPtr fGraph;
+
+private:
+    void initializeInternal();
+
+public:
+    RouteManager() noexcept;
+
+    void uploadDatabase(std::istream& in);
+    std::string getStops() const;
+    std::string getMap() const;
+    std::string getRoute(std::string_view from, std::string_view to);
+
 };
 
 class TravelTracker

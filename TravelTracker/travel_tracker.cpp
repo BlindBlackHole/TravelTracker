@@ -201,3 +201,57 @@ void TravelManager(std::istream& in, ostream& out)
     TravelTracker travel(in, out);
     travel.ReadDataFromJson(data).QueryProcessing(data);
 }
+
+RouteManager::RouteManager() noexcept : fMap(fDatabase) {}
+
+void RouteManager::initializeInternal()
+{
+    fGraph = make_unique<Map::InternalGraph>(fMap.BuildMap());
+    fRouter = make_unique<Graph::Router<Weight>>(*fGraph);
+
+    fDatabase.SetBusesColors();
+}
+
+void RouteManager::uploadDatabase(istream &in)
+{
+    auto doc = make_unique<Json::Document>(Json::Load(in));
+    auto requests = doc->GetRoot().AsMap();
+
+    Reader reader(fDatabase);
+    for (auto request = requests.begin(); request != end(requests); ++request) {
+        if (request->first == "routing_settings") {
+            reader.ReadRoutingSettings(request->second.AsMap());
+        }
+        if (request->first == "render_settings") {
+            reader.ReadRenderSettings(request->second.AsMap());
+        }
+        if (request->first == "base_requests") {
+            reader.ReadBaseRequests(request->second.AsArray());
+        }
+    }
+
+    initializeInternal();
+}
+
+string RouteManager::getStops() const
+{
+    return "";//fDatabase.GetStopsInfo();
+}
+
+string RouteManager::getMap() const
+{
+    std::ostringstream out;
+    QueryMap map(fDatabase, 0, out);
+    map.Procces().GetResult();
+    return out.str();
+}
+
+string RouteManager::getRoute(string_view fromStop, string_view toStop)
+{
+    auto from = fDatabase.GetStopIdByName(fromStop.data());
+    auto to = fDatabase.GetStopIdByName(toStop.data());
+    std::ostringstream out;
+    QueryRoute route(fDatabase, fMap, fGraph, fRouter, from, to, 0, out);
+    route.Procces().GetResult();
+    return out.str();
+}

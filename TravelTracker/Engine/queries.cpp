@@ -106,9 +106,7 @@ QueryRoute& QueryRoute::Procces()
     RenderMap routes_map(doc, data);
     const vector<string>& render_layers = data.GetMapInfo().layers;
     for (const string& render_layer : render_layers) {
-        //�������� ��������� �� �����
         auto method_ptr = routes_map.LAYERS.at(render_layer);
-        //�������� ������ � ���������� ����������, ����� ��������� �� ��� ��
         (routes_map.*method_ptr)();
     }
     // Secondly roure rendering
@@ -135,16 +133,14 @@ QueryRoute& QueryRoute::GetResult()
 // QueryRoute--
 
 //--QueryMap
-QueryMap::QueryMap(RouteDatabase& data, int id, std::ostream& out) : data(data), id(id), out(out) {}
+QueryMap::QueryMap(const RouteDatabase& data, int id, std::ostream& out) : data(data), id(id), out(out) {}
 
 QueryMap& QueryMap::Procces()
 {
     RenderMap layers(doc, data);
     const vector<string>& render_layers = data.GetMapInfo().layers;
     for (const string& render_layer : render_layers) {
-        //�������� ��������� �� �����
         auto method_ptr = layers.LAYERS.at(render_layer);
-        //�������� ������ � ���������� ����������, ����� ��������� �� ��� ��
         (layers.*method_ptr)();
     }
     return *this;

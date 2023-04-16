@@ -446,8 +446,7 @@ namespace Svg {
         void Render(std::ostream& out) const
         {
             std::string result;
-            result = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
-            result += "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">";
+            result = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" viewBox=\"0 0 1500 900\">";
 
             for (auto& d : data) {
                 result += d->GetSvg();
@@ -461,7 +460,8 @@ namespace Svg {
         {
             std::string result;
             result = "<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\" ?>";
-            result += "<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" version=\\\"1.1\\\">";
+            result += "<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 60 55\\\" version=\\\"1.1\\\">";
+            result += "<view id=\\\"tightcrop\\\" viewBox=\\\"4.5 1.5 51 49\\\" />";
 
             for (auto& d : data) {
                 result += d->GetSvgJson();
