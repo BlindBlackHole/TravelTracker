@@ -268,6 +268,35 @@ string RouteManager::getStops() const
     return doc.toJson().toStdString();
 }
 
+string RouteManager::getBuses() const
+{
+    const auto& buses = fDatabase.GetBusesInfo();
+    QJsonArray jsonBuses;
+    for (const auto& [_, info] : buses) {
+
+        QJsonArray stopsArray;
+        for (const auto& stop : info.stops) {
+            stopsArray.push_back(QString::fromStdString(stop));
+        }
+
+        QJsonObject busObj
+        {
+            {"name", QString::fromStdString(info.name)},
+            {"isCircle", info.circle},
+            {"stops", stopsArray},
+        };
+        jsonBuses.push_back(busObj);
+    }
+
+    QJsonObject result
+    {
+        {"buses", jsonBuses}
+    };
+
+    QJsonDocument doc(result);
+    return doc.toJson().toStdString();
+}
+
 string RouteManager::getMap() const
 {
     std::ostringstream out;

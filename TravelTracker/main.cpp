@@ -31,6 +31,16 @@ int main(int argc, char* argv[])
 
     RouteManager manager;
 
+    static constexpr auto mapFile = "map.json";
+
+    std::ifstream file(mapFile);
+    if (!file.is_open()) {
+        qDebug() << "Cannot open map file: '" << mapFile << "'";
+    }
+
+    manager.uploadDatabase(file);
+    qDebug() << "Data was succesfully loaded from: '" << mapFile << "'";
+
     QHttpServer server;
 
     server.afterRequest([] (QHttpServerResponse &&response) {
@@ -78,6 +88,14 @@ int main(int argc, char* argv[])
 
     server.route("/stops", [&manager](const QHttpServerRequest&) {
         auto result = QString::fromStdString(manager.getStops());
+
+        auto response = QHttpServerResponse{result};
+        response.setHeader("Content-Type", "application/json");
+        return response;
+    });
+
+    server.route("/buses", [&manager](const QHttpServerRequest&) {
+        auto result = QString::fromStdString(manager.getBuses());
 
         auto response = QHttpServerResponse{result};
         response.setHeader("Content-Type", "application/json");

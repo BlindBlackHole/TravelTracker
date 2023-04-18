@@ -49,10 +49,14 @@ public:
     RouteManager() noexcept;
 
     void uploadDatabase(std::istream& in);
-    std::string getStops() const;
-    std::string getMap() const;
-    std::string getRoute(std::string_view from, std::string_view to);
 
+    std::string getStops() const;
+
+    std::string getBuses() const;
+
+    std::string getMap() const;
+
+    std::string getRoute(std::string_view from, std::string_view to);
 };
 
 class TravelTracker
