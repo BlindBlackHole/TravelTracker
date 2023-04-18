@@ -163,6 +163,9 @@ void RenderRoute::AddBusLines() const
     const auto& stops_by_id = data.GetStopsById();
     const string& stop_from = stops_by_id[from];
     const string& stop_to = stops_by_id[to];
+    if (stop_from == stop_to)
+        return;
+
     string curr_stop;
     for (size_t i = 0; i < route->size(); ++i) {
         if (route->at(i).edge == EdgeType::WAIT) {
@@ -226,6 +229,9 @@ void RenderRoute::AddBusLabels() const
     const auto& stops_by_id = data.GetStopsById();
     const string& stop_from = stops_by_id[from];
     const string& stop_to = stops_by_id[to];
+    if (stop_from == stop_to)
+        return;
+
     for (size_t i = 0; i < route->size(); ++i) {
         if (route->at(i).edge == EdgeType::WAIT) {
             const string& bus = (i + 1) > route->size() ? route->back().bus_or_stop
@@ -236,8 +242,8 @@ void RenderRoute::AddBusLabels() const
             }
             if (i >= 1
                 && (curr_stop == buses.at(route->at(i - 1).bus_or_stop).stops.front()
-                    || !buses.at(route->at(i - 1).bus_or_stop).circle
-                           && curr_stop == buses.at(route->at(i - 1).bus_or_stop).stops.back()))
+                    || (!buses.at(route->at(i - 1).bus_or_stop).circle
+                           && curr_stop == buses.at(route->at(i - 1).bus_or_stop).stops.back())))
             {
                 DrawBusLabel(
                     curr_stop, buses.at(route->at(i - 1).bus_or_stop).color,
@@ -265,6 +271,9 @@ void RenderRoute::AddStopPoints() const
     const auto& stops_by_id = data.GetStopsById();
     const string& stop_from = stops_by_id[from];
     const string& stop_to = stops_by_id[to];
+    if (stop_from == stop_to)
+        return;
+
     string curr_stop;
     for (size_t i = 0; i < route->size(); ++i) {
         if (route->at(i).edge == EdgeType::WAIT) {
@@ -275,10 +284,10 @@ void RenderRoute::AddStopPoints() const
         const BusInfo& bus_info = buses.at(bus);
         const string& next_sup_stop
             = (i + 1) >= route->size() ? stop_to : route->at(i + 1).bus_or_stop;
-        int curr_idx = 0;
-        int next_sup_idx = 0;
-        int stop_count = route->at(i).stop_count;
-        for (int j = 0; j < bus_info.stops.size(); ++j) {
+        size_t curr_idx = 0;
+        size_t next_sup_idx = 0;
+        size_t stop_count = route->at(i).stop_count;
+        for (size_t j = 0; j < bus_info.stops.size(); ++j) {
             if (bus_info.stops[j] == curr_stop) {
                 curr_idx = j;
                 if (curr_idx - stop_count >= 0
@@ -308,7 +317,7 @@ void RenderRoute::AddStopPoints() const
             }
         }
         auto bounds = std::minmax(curr_idx, next_sup_idx);
-        for (int j = bounds.first; j <= bounds.second; ++j) {
+        for (size_t j = bounds.first; j <= bounds.second; ++j) {
             auto stop_info = stops.at(buses.at(bus).stops[j]);
             auto [x, y] = compressed_coords->GetCoords(stop_info.name);
             doc.Add(Svg::Circle{}

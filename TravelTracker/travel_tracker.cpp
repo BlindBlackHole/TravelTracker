@@ -1,4 +1,8 @@
 #include "travel_tracker.h"
+#include <QUuid>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 using namespace std;
 
@@ -235,7 +239,33 @@ void RouteManager::uploadDatabase(istream &in)
 
 string RouteManager::getStops() const
 {
-    return "";//fDatabase.GetStopsInfo();
+    const auto& stops = fDatabase.GetStopsInfo();
+    QJsonArray jsonStops;
+    for (const auto& [_, info] : stops) {
+
+        QJsonArray busesArray;
+        for (const auto& bus : info.busses) {
+            busesArray.push_back(QString::fromStdString(bus));
+        }
+
+        QJsonObject stopObj
+        {
+            {"name", QString::fromStdString(info.name)},
+            {"id", static_cast<qint64>(info.id)},
+            {"latitude", info.latitude},
+            {"longtitude", info.longtitude},
+            {"buses", busesArray},
+        };
+        jsonStops.push_back(stopObj);
+    }
+
+    QJsonObject result
+    {
+        {"stops", jsonStops}
+    };
+
+    QJsonDocument doc(result);
+    return doc.toJson().toStdString();
 }
 
 string RouteManager::getMap() const
@@ -251,6 +281,7 @@ string RouteManager::getRoute(string_view fromStop, string_view toStop)
     auto from = fDatabase.GetStopIdByName(fromStop.data());
     auto to = fDatabase.GetStopIdByName(toStop.data());
     std::ostringstream out;
+    auto uuid = QUuid::createUuid().toString().toStdString();
     QueryRoute route(fDatabase, fMap, fGraph, fRouter, from, to, 0, out);
     route.Procces().GetResult();
     return out.str();

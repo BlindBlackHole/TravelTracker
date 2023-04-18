@@ -76,6 +76,14 @@ int main(int argc, char* argv[])
         return sendLocalFile("map0.svg");
     });
 
+    server.route("/stops", [&manager](const QHttpServerRequest&) {
+        auto result = QString::fromStdString(manager.getStops());
+
+        auto response = QHttpServerResponse{result};
+        response.setHeader("Content-Type", "application/json");
+        return response;
+    });
+
     server.listen(QHostAddress::LocalHost, PORT);
     qDebug() << "Server is listening on port: " << PORT;
 
