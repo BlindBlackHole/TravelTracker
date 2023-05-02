@@ -123,7 +123,7 @@ QueryRoute& QueryRoute::GetResult()
 {
     ofstream out("route" + to_string(id) + ".svg");
     // ofstream outdata("data" + to_string(id) + ".txt");
-    doc.Render(out);
+    doc.Render(out, data.GetMapInfo().width, data.GetMapInfo().height);
     JsonParser::JsonRouteOutput(
         doc, route_, map_.GetTimeInRoad(), data.GetRouteInfo().bus_wait_time, id, this->out
     );
@@ -149,7 +149,7 @@ QueryMap& QueryMap::Procces()
 QueryMap& QueryMap::GetResult()
 {
     ofstream out("map" + to_string(id) + ".svg");
-    doc.Render(out);
+    doc.Render(out, data.GetMapInfo().width, data.GetMapInfo().height);
     JsonParser::JsonMapOutput(doc, id, this->out);
     return *this;
 }

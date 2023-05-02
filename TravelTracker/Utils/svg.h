@@ -443,10 +443,10 @@ namespace Svg {
             data.push_back(std::make_unique<ObjectType>(std::move(obj)));
         }
 
-        void Render(std::ostream& out) const
+        void Render(std::ostream& out, size_t width = 1500, size_t height = 800) const
         {
             std::string result;
-            result = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" viewBox=\"0 0 1500 900\">";
+            result = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" viewBox=\"0 0 " + std::to_string(width) + " " + std::to_string(height) + "\">";
 
             for (auto& d : data) {
                 result += d->GetSvg();
