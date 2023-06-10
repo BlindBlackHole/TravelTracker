@@ -1,6 +1,12 @@
 #include "tests.h"
 #include <QCoreApplication>
 #include <QHttpServer>
+#include <QHttpMultiPart>
+#include <QHttpPart>
+#include <QFileInfo>
+
+#include <QJsonDocument>
+#include <QJsonObject>
 
 constexpr size_t PORT = 8080;
 
@@ -19,10 +25,9 @@ auto sendLocalFile(const std::string& filename) {
        str = ss.str();
     }
 
-    qDebug() << str;
-
     return QHttpServerResponse{QString::fromStdString(str)};
 }
+
 
 int main(int argc, char* argv[])
 {
@@ -31,15 +36,11 @@ int main(int argc, char* argv[])
 
     RouteManager manager;
 
-    static constexpr auto mapFile = "map.json";
+    manager.loadSavedMaps();
 
-    std::ifstream file(mapFile);
-    if (!file.is_open()) {
-        qDebug() << "Cannot open map file: '" << mapFile << "'";
-    }
+    static constexpr auto mapFile = "./data/maps/Kyiv.json";
 
-    manager.uploadDatabase(file);
-    qDebug() << "Data was succesfully loaded from: '" << mapFile << "'";
+    manager.initMap(mapFile);
 
     QHttpServer server;
 
@@ -51,17 +52,40 @@ int main(int argc, char* argv[])
     });
 
     server.route("/upload", QHttpServerRequest::Method::Post, [&manager](const QHttpServerRequest& request) {
-         std::istringstream in(request.body().toStdString());
-         manager.uploadDatabase(in);
-         return QHttpServerResponder::StatusCode::Created;
-     });
-
-    server.route("/map", [&manager](const QHttpServerRequest&) {
-        auto result = QString::fromStdString(manager.getMap());
-        auto response = QHttpServerResponse{result};
-        response.setHeader("Content-Type", "application/json");
-        return response;
+        std::istringstream in(request.body().toStdString());
+        manager.uploadDatabase(in);
+        return QHttpServerResponder::StatusCode::Created;
     });
+
+    server.route("/map/upload", QHttpServerRequest::Method::Post, [&manager](const QHttpServerRequest& request) {
+        auto body = QString::fromUtf8(request.body()).simplified().toStdString();
+
+        size_t nameStart = body.find("filename=") + 10;
+        size_t nameEnd = body.find_first_of('"', nameStart);
+        auto mapFile = body.substr(nameStart, nameEnd - nameStart);
+        qDebug() << "Parsed filename: " << mapFile;
+
+        size_t start = body.find_first_of(L'{');
+        size_t end = body.find_last_of(L'}');
+        auto result = body.substr(start, end - start + 1);
+
+
+        auto [mapId, mapName] = manager.addMap(std::move(mapFile), std::move(result));
+
+        QJsonObject obj{
+            {"mapId", mapId.data()},
+            {"name", mapName.data()}
+        };
+
+        return QHttpServerResponse{obj};
+    });
+
+//    server.route("/map", [&manager](const QHttpServerRequest&) {
+//        auto result = QString::fromStdString(manager.addMap());
+//        auto response = QHttpServerResponse{result};
+//        response.setHeader("Content-Type", "application/json");
+//        return response;
+//    });
 
     server.route("/route", [&manager](const QHttpServerRequest &request) {
         if (!request.query().hasQueryItem("from") || !request.query().hasQueryItem("to")) {
@@ -82,8 +106,21 @@ int main(int argc, char* argv[])
         return sendLocalFile("route0.svg");
     });
 
-    server.route("/map/svg", []() {
-        return sendLocalFile("map0.svg");
+    server.route("/map/svg", [&manager](const QHttpServerRequest &request) {
+        if (!request.query().hasQueryItem("id")) {
+            qDebug() << "No map id param";
+            return QHttpServerResponse{QHttpServerResponder::StatusCode::BadRequest};
+        }
+
+        auto mapName = manager.getMapName(request.query().queryItemValue("id").toStdString());
+
+        if (mapName.empty()) {
+            return QHttpServerResponse{QHttpServerResponder::StatusCode::NotFound};
+        }
+
+        manager.initMap("./data/maps/" + mapName + ".json");
+
+        return sendLocalFile(mapName + ".svg");
     });
 
     server.route("/stops", [&manager](const QHttpServerRequest&) {
@@ -101,6 +138,15 @@ int main(int argc, char* argv[])
         response.setHeader("Content-Type", "application/json");
         return response;
     });
+
+    server.route("/maps", [&manager](const QHttpServerRequest&) {
+        auto result = QString::fromStdString(manager.getMaps());
+
+        auto response = QHttpServerResponse{result};
+        response.setHeader("Content-Type", "application/json");
+        return response;
+    });
+
 
     server.listen(QHostAddress::LocalHost, PORT);
     qDebug() << "Server is listening on port: " << PORT;

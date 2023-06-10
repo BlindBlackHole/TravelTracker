@@ -41,6 +41,9 @@ private:
     Map fMap;
     RouterPtr fRouter;
     GraphPtr fGraph;
+    std::string currentMap;
+
+    std::unordered_map<std::string, std::string> maps;
 
 private:
     void initializeInternal();
@@ -50,13 +53,29 @@ public:
 
     void uploadDatabase(std::istream& in);
 
+    void initMap(const std::string& mapFile);
+
+    auto addMap(std::string filename, std::string mapData) -> std::pair<std::string, std::string>;
+
     std::string getStops() const;
 
     std::string getBuses() const;
 
-    std::string getMap() const;
+    std::string renderMap(const std::string& mapName);
 
     std::string getRoute(std::string_view from, std::string_view to);
+
+    std::string getMaps() const;
+
+    std::string getMapName(const std::string& mapId) const;
+
+    const std::string& getCurrentMap() const;
+
+    void setCurrentMap(const std::string& map);
+
+    void loadSavedMaps();
+
+    void reset();
 };
 
 class TravelTracker

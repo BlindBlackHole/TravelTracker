@@ -133,7 +133,8 @@ QueryRoute& QueryRoute::GetResult()
 // QueryRoute--
 
 //--QueryMap
-QueryMap::QueryMap(const RouteDatabase& data, int id, std::ostream& out) : data(data), id(id), out(out) {}
+QueryMap::QueryMap(const RouteDatabase& data, std::string mapName, std::ostream& out)
+    : data(data), mapName(mapName), out(out) {}
 
 QueryMap& QueryMap::Procces()
 {
@@ -146,12 +147,23 @@ QueryMap& QueryMap::Procces()
     return *this;
 }
 
+//namespace  {
+//    static constexpr std::string_view MAPS_PATH = "/data/maps/";
+//}
+
 QueryMap& QueryMap::GetResult()
 {
-    ofstream out("map" + to_string(id) + ".svg");
+    //mapPath = MAPS_PATH.data() + mapName + ".svg";
+    ofstream out(mapName + ".svg");
     doc.Render(out, data.GetMapInfo().width, data.GetMapInfo().height);
-    JsonParser::JsonMapOutput(doc, id, this->out);
+
+//    JsonParser::JsonMapOutput(doc, id, this->out);
     return *this;
+}
+
+string QueryMap::GetMapPath() const
+{
+    return mapPath;
 }
 
 // QueryMap--

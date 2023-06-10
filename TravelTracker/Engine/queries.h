@@ -143,14 +143,18 @@ class QueryMap : public Query
 {
 private:
     const RouteDatabase& data;
-    int id;
+    int id{};
+    std::string mapName;
     std::ostream& out;
     Svg::Document doc;
+    std::string mapPath;
 
 public:
-    QueryMap(const RouteDatabase& data, int id, std::ostream& out = std::cout);
+    QueryMap(const RouteDatabase& data, std::string mapName, std::ostream& out = std::cout);
 
     QueryMap& Procces() override;
 
     QueryMap& GetResult() override;
+
+    std::string GetMapPath() const;
 };

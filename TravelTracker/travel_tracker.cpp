@@ -4,6 +4,9 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
+#include <QDirIterator>
+#include <QDir>
+
 using namespace std;
 
 using GraphPtr = shared_ptr<Graph::DirectedWeightedGraph<Weight>>;
@@ -187,7 +190,7 @@ TravelTracker& TravelTracker::QueryProcessing(RouteDatabase& data)
                     out << ",\n";
             }
             else if (info["type"].AsString() == "Map") {
-                QueryMap map(data, info["id"].AsDouble(), out);
+                QueryMap map(data, "", out);
                 map.Procces().GetResult();
                 if (i != size - 1)
                     out << ",\n";
@@ -235,6 +238,41 @@ void RouteManager::uploadDatabase(istream &in)
     }
 
     initializeInternal();
+}
+
+void RouteManager::initMap(const string &mapFile)
+{
+    std::ifstream file(mapFile);
+    if (!file.is_open()) {
+        qDebug() << "Cannot open map file: '" << mapFile << "'";
+        return;
+    }
+
+    reset();
+
+    setCurrentMap(mapFile);
+
+    uploadDatabase(file);
+    qDebug() << "Data was succesfully loaded from: '" << mapFile << "'";
+
+    renderMap(QFileInfo(mapFile.data()).baseName().toStdString());
+
+    qDebug() << "Map was succesfully build";
+}
+
+auto RouteManager::addMap(std::string filename, std::string mapData) -> std::pair<std::string, std::string>
+{
+    filename = "./data/maps/" + filename;
+    std::ofstream out(filename);
+    out << mapData;
+
+    initMap(filename);
+
+    auto uuid = QUuid::createUuid().toString().toStdString();
+    auto mapName = QFileInfo(filename.data()).baseName().toStdString();
+    maps[uuid] = mapName;
+
+    return {std::move(uuid), std::move(mapName)};
 }
 
 string RouteManager::getStops() const
@@ -297,12 +335,12 @@ string RouteManager::getBuses() const
     return doc.toJson().toStdString();
 }
 
-string RouteManager::getMap() const
+std::string RouteManager::renderMap(const std::string& mapName)
 {
     std::ostringstream out;
-    QueryMap map(fDatabase, 0, out);
+    QueryMap map(fDatabase, mapName, out);
     map.Procces().GetResult();
-    return out.str();
+    return "";
 }
 
 string RouteManager::getRoute(string_view fromStop, string_view toStop)
@@ -314,4 +352,55 @@ string RouteManager::getRoute(string_view fromStop, string_view toStop)
     QueryRoute route(fDatabase, fMap, fGraph, fRouter, from, to, 0, out);
     route.Procces().GetResult();
     return out.str();
+}
+
+string RouteManager::getMaps() const
+{
+    QJsonArray mapsArr;
+    for (const auto& [id, name] : maps) {
+        mapsArr.push_back(QJsonObject{{"id", id.data()}, {"name", name.data()}});
+    }
+
+    QJsonDocument doc(QJsonObject{{"maps", std::move(mapsArr)}});
+    return doc.toJson().toStdString();
+}
+
+string RouteManager::getMapName(const string &mapId) const
+{
+    if (const auto it = maps.find(mapId); it != maps.end()) {
+        return it->second;
+    }
+
+    return "";
+}
+
+const string& RouteManager::getCurrentMap() const
+{
+    return currentMap;
+}
+
+void RouteManager::setCurrentMap(const string &map)
+{
+    currentMap = map;
+}
+
+void RouteManager::loadSavedMaps()
+{
+    QDirIterator it("./data/maps", QDirIterator::Subdirectories);
+
+    while (it.hasNext()) {
+        it.next();
+        if (QFileInfo(it.filePath()).isFile() && QFileInfo(it.filePath()).suffix() == "json") {
+            qDebug() << it.fileName();
+
+            maps[QUuid::createUuid().toString().toStdString()] = QFileInfo(it.filePath()).baseName().toStdString();
+        }
+    }
+}
+
+void RouteManager::reset()
+{
+    fDatabase = {};
+    fRouter = nullptr;
+    fGraph = nullptr;
 }
